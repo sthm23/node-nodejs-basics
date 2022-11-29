@@ -1,7 +1,7 @@
 import * as fsPromises from 'fs/promises';
-import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import {checkPathExists} from './checkerExists.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -9,31 +9,29 @@ const path = _dirname + '/files';
 const copyPath = _dirname + '/files_copy';
 
 const copy = async () => {
-    fs.stat(path, async (err, stat) => {
-        if(err === null) {
+    const checkPath = await checkPathExists(path);
+    if(checkPath === false) {
+        throw new Error('FS operation failed');
+    } else if (checkPath === true) {
 
-            fs.stat(copyPath, async (copyErr, re) => {
-                if(copyErr === null) {
-                    throw new Error('FS operation failed');
-                } else if (copyErr.code === 'ENOENT') {
-                    await fsPromises.mkdir(copyPath);
-                    const files = await fsPromises.readdir(path);
-                    for (const file of files) {
-                        const source = join(path, file);
-                        const destination = join(copyPath, file);
-                        await fsPromises.copyFile(source, destination);
-                    }
-                } else {
-                    throw new Error(copyErr);
-                }
-            })
-
-        } else if (err.code === 'ENOENT') {
+        const checkCopyPath = await checkPathExists(copyPath);
+        if(checkCopyPath === true) {
             throw new Error('FS operation failed');
+        } else if(checkCopyPath === false) {
+            await fsPromises.mkdir(copyPath);
+            const files = await fsPromises.readdir(path);
+            for (const file of files) {
+                const source = join(path, file);
+                const destination = join(copyPath, file);
+                await fsPromises.copyFile(source, destination);
+            }
+            return console.log('All files are copied!');
         } else {
-            throw new Error(err);
+            throw new Error(checkCopyPath);
         }
-    })
+    } else {
+        throw new Error(checkPath);
+    }
 }
 
 copy();
