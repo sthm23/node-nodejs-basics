@@ -5,7 +5,7 @@ const parseEnv = () => {
     for (const key in env) {
         if (Object.hasOwnProperty.call(env, key)) {
             const element = env[key];
-            if(key.includes('RSS_')) {
+            if(key.startsWith('RSS_')) {
                 str += `${key}=${element}; `;
             }
         }
