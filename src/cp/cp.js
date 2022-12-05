@@ -1,11 +1,12 @@
+import { spawn } from 'node:child_process';
+
 // const spawnChildProcess = async (args) => {
 //     // Write your code here
 // };
 
 // spawnChildProcess();
 
-import { spawn } from 'node:child_process';
-const ls = spawn('ls', ['-lh', '/usr']);
+const ls = spawn('node', ['src/wt/main.js', '/usr']);
 
 ls.stdout.on('data', (data) => {
   console.log(`stdout: ${data}`);

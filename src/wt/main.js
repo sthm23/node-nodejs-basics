@@ -17,6 +17,13 @@ const performCalculations = async () => {
     while(count !== len-1) {
       worker = new Worker(path);
       worker.postMessage({num:START_NUMBER + count, ind: count})
+      worker.on('error',(err)=>{
+        arrResultWorkers.push({
+          status: 'Error',
+          data: null,
+          ind: err.ind
+        });
+      })
       worker.on('message', (msg)=>{
           if(msg instanceof Error) {
             arrResultWorkers.push({
