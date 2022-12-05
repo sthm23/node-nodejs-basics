@@ -9,33 +9,42 @@ const cpuCores = os.cpus();
 const START_NUMBER = 10;
 
 const performCalculations = async () => {
-  const arrResultWorkers = [];
-
-    if(isMainThread){
-      for (let i = 0; i < cpuCores.length; i++) {
-        const worker = new Worker(path);
-        worker.postMessage(START_NUMBER + i)
-        worker.on('message', (msg)=>{
+  if(isMainThread){
+    const arrResultWorkers = [];
+    let count = 0;
+    const len = cpuCores.length;
+    let worker;
+    while(count !== len-1) {
+      worker = new Worker(path);
+      worker.postMessage({num:START_NUMBER + count, ind: count})
+      worker.on('message', (msg)=>{
           if(msg instanceof Error) {
             arrResultWorkers.push({
               status: 'Error',
-              data: null
+              data: null,
+              ind: msg.ind
             });
           } else {
             arrResultWorkers.push({
               status: 'Resolved',
-              data: msg
+              data: msg.result,
+              ind: msg.ind
             });
           }
+      })
+      count++;
+      if(count === len-1){
+        worker.on('exit', ()=>{
+          const arr = arrResultWorkers.sort((a,b)=>a.ind - b.ind)
+          .map(item => {
+            return {status: item.status, data: item.data}
+        });
+        console.log(arr);
         })
-
-        if(i === cpuCores.length - 1) {
-          worker.on('exit', ()=>{
-            console.log(arrResultWorkers);
-          })
-        }
       }
     }
+
+  }
 
 };
 
